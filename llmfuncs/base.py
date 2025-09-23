@@ -1,4 +1,5 @@
 import re
+import pandas as pd
 
 def get_models(client):
     excl_string="embed"
@@ -19,3 +20,8 @@ def send_chat(client, sys_prompt, prompt, model):
         stream=True,
     )
     return stream
+
+def read_file(file):
+    dataframe = pd.read_csv(file)
+    st.write(dataframe)
+    return dataframe

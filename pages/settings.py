@@ -1,6 +1,14 @@
 import streamlit as st
 import ollama
 from time import sleep
+import authfuncs.authenticate as auth
+
+with st.spinner("Loading..."):
+    config = auth.config_auth()
+    authenticator=auth.init_auth(config)
+    auth.auth_check(authenticator)
+    
+auth.update_auth(config)
 
 st.subheader("Model Management", divider="red", anchor=False)
 
