@@ -1,34 +1,38 @@
 import streamlit as st
-import ollama
-from time import sleep
-import authfuncs.authenticate as auth
+from authfuncs import authenticate as af
+from menu import menu
+from llmfuncs import base as lf
+from config import Config
 
-with st.spinner("Loading..."):
-    config = auth.config_auth()
-    authenticator=auth.init_auth(config)
-    auth.auth_check(authenticator)
-    
-auth.update_auth(config)
-
-st.subheader("Model Management", divider="red", anchor=False)
-
-st.subheader("Download Models", anchor=False)
-model_name = st.text_input(
-    "Enter model name from https://ollama.com/library to download:", placeholder="mistral:7b"
+st.set_page_config(
+    page_icon=Config.PAGE_ICON,
+    page_title=Config.SETTINGS_TITLE,
+    initial_sidebar_state=Config.SIDEBAR
 )
-if st.button(f"📥 :green[**Download**] :red[{model_name}]"):
-    if model_name:
-        try:
-            ollama.pull(model_name)
-            st.success(f"Downloaded model: {model_name}", icon="🎉")
-            st.balloons()
-            sleep(1)
-            st.rerun()
-        except Exception as e:
-            st.error(
-                f"""Failed to download model: {
-                model_name}. Error: {str(e)}""",
-                icon="😳",
-            )
-    else:
-        st.warning("Please enter a model name.", icon="⚠️")
+
+st.title=Config.SETTINGS_TITLE
+
+st.header("User Options", anchor=False, divider="red")
+
+af.auth_check()
+
+authenticator = af.authenticate()
+config = af.config_auth()
+
+menu(authenticator)
+
+if st.session_state.get('authentication_status'):
+    try:
+        if authenticator.update_user_details(st.session_state.get('username')):
+            st.success('Entries updated successfully')
+            af.update_auth(config)
+    except Exception as e:
+        st.error(e)
+
+if st.session_state.get('authentication_status'):
+    try:
+        if authenticator.reset_password(st.session_state.get('username')):
+            st.success('Password modified successfully')
+            af.update_auth(config)
+    except Exception as e:
+        st.error(e)
